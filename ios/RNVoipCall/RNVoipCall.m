@@ -124,8 +124,10 @@ RCT_EXPORT_METHOD(initialize:(NSDictionary *)options)
 
     [RNVoipCall initCallKitProvider];
 
-    self.callKeepProvider = sharedProvider;
-    [self.callKeepProvider setDelegate:self queue:nil];
+    if (self.callKeepProvider == nil) {
+        self.callKeepProvider = sharedProvider;
+        [self.callKeepProvider setDelegate:self queue:nil];
+    }
 }
 
 RCT_REMAP_METHOD(checkIfBusy,
@@ -347,7 +349,7 @@ RCT_EXPORT_METHOD(showMissedCallNotification:
                 CXStartCallAction *startCallAction = [transaction.actions firstObject];
                 CXCallUpdate *callUpdate = [[CXCallUpdate alloc] init];
                 callUpdate.remoteHandle = startCallAction.handle;
-                callUpdate.hasVideo = startCallAction.video;
+                callUpdate.hasVideo = NO;
                 callUpdate.localizedCallerName = startCallAction.contactIdentifier;
                 callUpdate.supportsDTMF = YES;
                 callUpdate.supportsHolding = YES;
@@ -460,6 +462,7 @@ RCT_EXPORT_METHOD(showMissedCallNotification:
     callUpdate.localizedCallerName = localizedCallerName;
 
     [RNVoipCall initCallKitProvider];
+    
     [sharedProvider reportNewIncomingCallWithUUID:uuid update:callUpdate completion:^(NSError * _Nullable error) {
         RNVoipCall *callKeep = [RNVoipCall allocWithZone: nil];
         [callKeep sendEventWithName:RNVoipCallDidDisplayIncomingCall body:@{
@@ -543,8 +546,8 @@ RCT_EXPORT_METHOD(showMissedCallNotification:
     NSLog(@"[RNVoipCall][getProviderConfiguration]");
 #endif
     CXProviderConfiguration *providerConfiguration = [[CXProviderConfiguration alloc] initWithLocalizedName:settings[@"appName"]];
-    providerConfiguration.supportsVideo = YES;
-    providerConfiguration.maximumCallGroups = 3;
+    providerConfiguration.supportsVideo = NO;
+    providerConfiguration.maximumCallGroups = 1;
     providerConfiguration.maximumCallsPerCallGroup = 1;
     if(settings[@"handleType"]){
         int _handleType = [RNVoipCall getHandleType:settings[@"handleType"]];
